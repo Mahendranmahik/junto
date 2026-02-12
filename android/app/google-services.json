@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "878364587679",
+    "project_id": "junto-8fdaa",
+    "storage_bucket": "junto-8fdaa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:878364587679:android:e589d0d1c6ded2a69c14aa",
+        "android_client_info": {
+          "package_name": "com.junto.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXnKNEn0aDmsL2QXjgy36rsXSXYJHw-b8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
