@@ -3,12 +3,30 @@ import 'package:get/get.dart';
 import 'package:junto/modules/chat/controllers/chat_controller.dart';
 import 'package:junto/modules/chat/models/message_model.dart';
 
-class ChatView extends StatelessWidget {
-  ChatView({super.key});
+class ChatView extends StatefulWidget {
+  const ChatView({super.key});
 
+  @override
+  State<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<ChatView> {
   final controller = Get.find<ChatController>();
   final textCtrl = TextEditingController();
   final scrollController = ScrollController();
+  final focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,26 +76,19 @@ class ChatView extends StatelessWidget {
                 );
               }
 
-              // Scroll to bottom when new messages arrive
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (scrollController.hasClients) {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                }
-              });
+              // Reverse messages list so newest appear at bottom
+              final reversedMessages = controller.messages.reversed.toList();
 
               return ListView.builder(
                 controller: scrollController,
+                reverse: true,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8,
                   vertical: 16,
                 ),
-                itemCount: controller.messages.length,
+                itemCount: reversedMessages.length,
                 itemBuilder: (context, index) {
-                  final message = controller.messages[index];
+                  final message = reversedMessages[index];
                   final isSentByMe = controller.isSentByMe(message);
                   return _buildMessageBubble(context, message, isSentByMe);
                 },
@@ -103,6 +114,7 @@ class ChatView extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: textCtrl,
+                    focusNode: focusNode,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: "Type a message...",
@@ -112,7 +124,9 @@ class ChatView extends StatelessWidget {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: const Color(0xFF2A2A2A), // Dark grey for input field
+                      fillColor: const Color(
+                        0xFF2A2A2A,
+                      ), // Dark grey for input field
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 10,
@@ -135,7 +149,7 @@ class ChatView extends StatelessWidget {
                             )
                             : const Icon(Icons.send),
                     onPressed: controller.isLoading.value ? null : _sendMessage,
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -172,9 +186,12 @@ class ChatView extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isSentByMe
-                    ? Theme.of(context).colorScheme.primary
-                    : const Color(0xFF1E1E1E), // Dark grey for received messages
+                color:
+                    isSentByMe
+                        ? Theme.of(context).colorScheme.primary
+                        : const Color(
+                          0xFF1E1E1E,
+                        ), // Dark grey for received messages
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -187,10 +204,7 @@ class ChatView extends StatelessWidget {
                 children: [
                   Text(
                     message.text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -208,9 +222,10 @@ class ChatView extends StatelessWidget {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 14,
-                          color: message.isRead
-                              ? Colors.blue[300]
-                              : Colors.white70,
+                          color:
+                              message.isRead
+                                  ? Colors.blue[300]
+                                  : Colors.white70,
                         ),
                       ],
                     ],

@@ -6,6 +6,8 @@ import 'package:junto/modules/chat/bindings/chat_binding.dart';
 import 'package:junto/modules/chat/views/chat_view.dart';
 import 'package:junto/modules/home/bindings/home_binding.dart';
 import 'package:junto/modules/home/views/home_view.dart';
+import 'package:junto/modules/settings/bindings/settings_binding.dart';
+import 'package:junto/modules/settings/views/settings_view.dart';
 
 class AppPages {
   static const INITIAL = Routes.LOGIN;
@@ -25,6 +27,11 @@ class AppPages {
       name: Routes.CHAT,
       page: () => ChatView(),
       binding: ChatBinding(),
+    ),
+    GetPage(
+      name: Routes.SETTINGS,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
     ),
   ];
 }
