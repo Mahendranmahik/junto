@@ -21,9 +21,59 @@ class HomeView extends GetView<HomeController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Chats",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        title: StreamBuilder<DocumentSnapshot>(
+          stream: controller.homeService.getCurrentUserStream(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data!.exists) {
+              final userData = snapshot.data!.data() as Map<String, dynamic>;
+              final userName = userData['name'] ?? 'User';
+              final photoUrl = userData['photo'] ?? '';
+              final initial = userName.isNotEmpty ? userName[0].toUpperCase() : '?';
+
+              return Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.grey[700]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: photoUrl.isNotEmpty
+                        ? ClipOval(
+                            child: _buildUserAvatar(photoUrl, context, initial),
+                          )
+                        : Center(
+                            child: Text(
+                              initial,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              );
+            }
+            return const Text(
+              "Chats",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            );
+          },
         ),
         actions: [
           // Step 7.1: Settings button
@@ -124,13 +174,12 @@ class HomeView extends GetView<HomeController> {
           }
 
           final users = snapshot.data!.docs;
+          final currentUserId = controller.homeService.myUid;
 
-          // Filter out current user
-          final otherUsers =
-              users.where((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                return data["uid"] != controller.homeService.myUid;
-              }).toList();
+          final otherUsers = users.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data["uid"] != currentUserId;
+          }).toList();
 
           if (otherUsers.isEmpty) {
             return Center(
@@ -182,39 +231,44 @@ class HomeView extends GetView<HomeController> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.grey[700]!,
-                            width: 2,
+                      GestureDetector(
+                        onTap: () {
+                          _showImagePopup(context, photoUrl, name, initial);
+                        },
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.grey[700]!,
+                              width: 2,
+                            ),
                           ),
-                        ),
-                        child:
-                            photoUrl.isNotEmpty
-                                ? ClipOval(
-                                  child: _buildUserAvatar(
-                                    photoUrl,
-                                    context,
-                                    initial,
-                                  ),
-                                )
-                                : Center(
-                                  child: Text(
-                                    initial,
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                          child:
+                              photoUrl.isNotEmpty
+                                  ? ClipOval(
+                                    child: _buildUserAvatar(
+                                      photoUrl,
+                                      context,
+                                      initial,
+                                    ),
+                                  )
+                                  : Center(
+                                    child: Text(
+                                      initial,
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(context).colorScheme.primary,
+                                      ),
                                     ),
                                   ),
-                                ),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -233,29 +287,52 @@ class HomeView extends GetView<HomeController> {
                             StreamBuilder<String?>(
                               stream: controller.homeService
                                   .getLastMessageStream(otherUserId),
-                              builder: (context, snapshot) {
-                                final lastMessage = snapshot.data;
+                              builder: (context, messageSnapshot) {
+                                return StreamBuilder<DateTime?>(
+                                  stream: controller.homeService
+                                      .getLastMessageTimestampStream(otherUserId),
+                                  builder: (context, timestampSnapshot) {
+                                    final lastMessage = messageSnapshot.data;
+                                    final timestamp = timestampSnapshot.data;
 
-                                if (lastMessage != null &&
-                                    lastMessage.isNotEmpty) {
-                                  return Text(
-                                    lastMessage,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey[400],
-                                    ),
-                                  );
-                                } else {
-                                  return Text(
-                                    'No messages yet',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey[600],
-                                    ),
-                                  );
-                                }
+                                    if (lastMessage != null &&
+                                        lastMessage.isNotEmpty) {
+                                      return Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              lastMessage,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
+                                          ),
+                                          if (timestamp != null) ...[
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              _formatTimestamp(timestamp),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      );
+                                    } else {
+                                      return Text(
+                                        'No messages yet',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[600],
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
                               },
                             ),
                           ],
@@ -385,5 +462,177 @@ class HomeView extends GetView<HomeController> {
         ),
       );
     }
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    String formatTime(DateTime time) {
+      final hour = time.hour == 0 ? 12 : (time.hour > 12 ? time.hour - 12 : time.hour);
+      final minute = time.minute.toString().padLeft(2, '0');
+      final period = time.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    }
+
+    if (difference.inDays == 0) {
+      return formatTime(timestamp);
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return days[timestamp.weekday - 1];
+    } else {
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${months[timestamp.month - 1]} ${timestamp.day}';
+    }
+  }
+
+  void _showImagePopup(BuildContext context, String photoUrl, String name, String initial) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          child: Stack(
+            children: [
+              Container(
+                constraints: const BoxConstraints(
+                  maxWidth: 400,
+                  maxHeight: 400,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: photoUrl.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: _buildPopupImage(photoUrl, initial, context),
+                              )
+                            : Container(
+                                width: 300,
+                                height: 300,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.grey[700]!,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    initial,
+                                    style: TextStyle(
+                                      fontSize: 80,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPopupImage(String imageData, String initial, BuildContext context) {
+    if (imageData.startsWith('data:image')) {
+      try {
+        final base64String = imageData.split(',')[1];
+        final imageBytes = base64Decode(base64String);
+        return Image.memory(
+          imageBytes,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildInitialWidget(initial, context);
+          },
+        );
+      } catch (e) {
+        return _buildInitialWidget(initial, context);
+      }
+    } else if (imageData.isNotEmpty) {
+      return Image.network(
+        imageData,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildInitialWidget(initial, context);
+        },
+      );
+    } else {
+      return _buildInitialWidget(initial, context);
+    }
+  }
+
+  Widget _buildInitialWidget(String initial, BuildContext context) {
+    return Container(
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.grey[700]!,
+          width: 3,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: TextStyle(
+            fontSize: 80,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
   }
 }

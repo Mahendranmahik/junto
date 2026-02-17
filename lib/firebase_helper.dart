@@ -7,12 +7,10 @@ class FirebaseHelper {
   static Future<void> initialize() async {
     await Firebase.initializeApp();
 
-    // Initialize Crashlytics
     FlutterError.onError = (errorDetails) {
       FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
     };
 
-    // Pass all uncaught asynchronous errors to Crashlytics
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;

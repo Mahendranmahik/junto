@@ -5,7 +5,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Register
   Future<User?> register(String email, String password, String name) async {
     final result = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -28,7 +27,6 @@ class AuthService {
     return user;
   }
 
-  // Login
   Future<User?> login(String email, String password) async {
     final result = await _auth.signInWithEmailAndPassword(
       email: email,
@@ -37,14 +35,20 @@ class AuthService {
     return result.user;
   }
 
-  // Logout
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  // Current User
   User? get currentUser => _auth.currentUser;
+
+  Future<void> saveFcmToken(String fcmToken) async {
+    final user = currentUser;
+    if (user != null) {
+      try {
+        await _db.collection("users").doc(user.uid).update({
+          "fcmToken": fcmToken,
+        });
+      } catch (e) {}
+    }
+  }
 }
-
-
-

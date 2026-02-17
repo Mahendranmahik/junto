@@ -11,6 +11,10 @@ class HomeService {
 
   String get myUid => _auth.currentUser!.uid;
 
+  Stream<DocumentSnapshot> getCurrentUserStream() {
+    return _db.collection("users").doc(myUid).snapshots();
+  }
+
   String _getChatRoomId(String userId1, String userId2) {
     final sortedIds = [userId1, userId2]..sort();
     return '${sortedIds[0]}_${sortedIds[1]}';
@@ -54,6 +58,30 @@ class HomeService {
         if (snapshot.docs.isNotEmpty) {
           final lastMessage = snapshot.docs.first.data();
           return lastMessage['text'] as String?;
+        }
+        return null;
+      });
+    } catch (e) {
+      return Stream.value(null);
+    }
+  }
+
+  Stream<DateTime?> getLastMessageTimestampStream(String otherUserId) {
+    try {
+      final chatRoomId = _getChatRoomId(myUid, otherUserId);
+      
+      return _db
+          .collection('messages')
+          .doc(chatRoomId)
+          .collection('chats')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots()
+          .map((snapshot) {
+        if (snapshot.docs.isNotEmpty) {
+          final lastMessage = snapshot.docs.first.data();
+          final timestamp = lastMessage['timestamp'] as Timestamp?;
+          return timestamp?.toDate();
         }
         return null;
       });

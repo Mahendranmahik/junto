@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get_it/get_it.dart';
 import 'package:junto/modules/chat/models/message_model.dart';
+import 'package:junto/modules/chat/services/push_notification_service.dart';
 
 class ChatService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final PushNotificationService _pushService = GetIt.instance<PushNotificationService>();
 
   Stream<QuerySnapshot> getUsers() {
     return _db.collection("users").snapshots();
@@ -12,16 +15,24 @@ class ChatService {
 
   String get myUid => _auth.currentUser!.uid;
 
-  /// Generate a unique chat room ID from two user IDs
-  /// This ensures both users see the same chat room
   String _getChatRoomId(String userId1, String userId2) {
-    // Sort IDs alphabetically to ensure same room ID regardless of order
     final sortedIds = [userId1, userId2]..sort();
     return '${sortedIds[0]}_${sortedIds[1]}';
   }
 
-  /// Send a message to Firestore
-  /// This stores the message in the 'messages' collection
+  Future<String> getUserName(String userId) async {
+    try {
+      final userDoc = await _db.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        return userData?['name'] as String? ?? 'User';
+      }
+      return 'User';
+    } catch (e) {
+      return 'User';
+    }
+  }
+
   Future<void> sendMessage({
     required String receiverId,
     required String text,
@@ -30,7 +41,6 @@ class ChatService {
       final senderId = myUid;
       final chatRoomId = _getChatRoomId(senderId, receiverId);
 
-      // Create message data
       final messageData = {
         'senderId': senderId,
         'receiverId': receiverId,
@@ -39,32 +49,38 @@ class ChatService {
         'isRead': false,
       };
 
-      // Add message to Firestore
       await _db
           .collection('messages')
           .doc(chatRoomId)
           .collection('chats')
           .add(messageData);
 
-      // Update the chat room's last message timestamp
       await _db.collection('messages').doc(chatRoomId).set({
         'lastMessage': text,
         'lastMessageTime': FieldValue.serverTimestamp(),
         'participants': [senderId, receiverId],
       }, SetOptions(merge: true));
+
+      try {
+        final senderName = await getUserName(senderId);
+        await _pushService.sendChatNotification(
+          receiverId: receiverId,
+          senderId: senderId,
+          senderName: senderName,
+          message: text,
+        );
+      } catch (e) {
+      }
     } catch (e) {
       throw Exception('Failed to send message: $e');
     }
   }
 
-  /// Get real-time stream of messages for a conversation
-  /// This listens to Firestore and updates automatically when new messages arrive
   Stream<List<MessageModel>> getMessages(String otherUserId) {
     try {
       final senderId = myUid;
       final chatRoomId = _getChatRoomId(senderId, otherUserId);
 
-      // Return stream of messages, ordered by timestamp
       return _db
           .collection('messages')
           .doc(chatRoomId)
@@ -81,13 +97,11 @@ class ChatService {
     }
   }
 
-  /// Mark messages as read
   Future<void> markMessagesAsRead(String otherUserId) async {
     try {
       final senderId = myUid;
       final chatRoomId = _getChatRoomId(senderId, otherUserId);
 
-      // Get all unread messages sent to current user
       final unreadMessages = await _db
           .collection('messages')
           .doc(chatRoomId)
@@ -96,7 +110,6 @@ class ChatService {
           .where('isRead', isEqualTo: false)
           .get();
 
-      // Update each message to mark as read
       final batch = _db.batch();
       for (var doc in unreadMessages.docs) {
         batch.update(doc.reference, {'isRead': true});

@@ -173,15 +173,6 @@ class _ChatViewState extends State<ChatView> {
             isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isSentByMe) ...[
-            // Avatar for received messages (optional)
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: const Color(0xFF2A2A2A),
-              child: const Icon(Icons.person, size: 16, color: Colors.grey),
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -191,7 +182,7 @@ class _ChatViewState extends State<ChatView> {
                         ? Theme.of(context).colorScheme.primary
                         : const Color(
                           0xFF1E1E1E,
-                        ), // Dark grey for received messages
+                        ),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -234,15 +225,6 @@ class _ChatViewState extends State<ChatView> {
               ),
             ),
           ),
-          if (isSentByMe) ...[
-            const SizedBox(width: 8),
-            // Avatar for sent messages (optional)
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: const Color(0xFF2A2A2A),
-              child: const Icon(Icons.person, size: 16, color: Colors.grey),
-            ),
-          ],
         ],
       ),
     );
@@ -253,18 +235,21 @@ class _ChatViewState extends State<ChatView> {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
 
+    String formatTime(DateTime time) {
+      final hour = time.hour == 0 ? 12 : (time.hour > 12 ? time.hour - 12 : time.hour);
+      final minute = time.minute.toString().padLeft(2, '0');
+      final period = time.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    }
+
     if (difference.inDays == 0) {
-      // Today - show time only
-      return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      return formatTime(timestamp);
     } else if (difference.inDays == 1) {
-      // Yesterday
-      return 'Yesterday ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      return 'Yesterday ${formatTime(timestamp)}';
     } else if (difference.inDays < 7) {
-      // This week - show day name
       final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return '${days[timestamp.weekday - 1]} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      return '${days[timestamp.weekday - 1]} ${formatTime(timestamp)}';
     } else {
-      // Older - show date
       final months = [
         'Jan',
         'Feb',
@@ -279,7 +264,7 @@ class _ChatViewState extends State<ChatView> {
         'Nov',
         'Dec',
       ];
-      return '${months[timestamp.month - 1]} ${timestamp.day}, ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      return '${months[timestamp.month - 1]} ${timestamp.day}, ${formatTime(timestamp)}';
     }
   }
 
