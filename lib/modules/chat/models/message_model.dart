@@ -7,6 +7,8 @@ class MessageModel {
   final String text;
   final DateTime timestamp;
   final bool isRead;
+  final bool isDeleted;
+  final List<String> deletedFor; // List of user IDs who deleted this message
 
   MessageModel({
     required this.id,
@@ -15,6 +17,8 @@ class MessageModel {
     required this.text,
     required this.timestamp,
     this.isRead = false,
+    this.isDeleted = false,
+    this.deletedFor = const [],
   });
 
   // Convert Firestore document to MessageModel
@@ -27,6 +31,8 @@ class MessageModel {
       text: data['text'] ?? '',
       timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isRead: data['isRead'] ?? false,
+      isDeleted: data['isDeleted'] ?? false,
+      deletedFor: List<String>.from(data['deletedFor'] ?? []),
     );
   }
 
@@ -38,6 +44,8 @@ class MessageModel {
       'text': text,
       'timestamp': Timestamp.fromDate(timestamp),
       'isRead': isRead,
+      'isDeleted': isDeleted,
+      'deletedFor': deletedFor,
     };
   }
 

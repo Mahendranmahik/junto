@@ -114,6 +114,59 @@ class ChatController extends GetxController {
     }
     return 'User';
   }
+
+  /// Delete a message
+  Future<void> deleteMessage({
+    required String messageId,
+    required bool deleteForEveryone,
+  }) async {
+    if (otherUserId == null) return;
+
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      await _chatService.deleteMessage(
+        otherUserId: otherUserId!,
+        messageId: messageId,
+        deleteForEveryone: deleteForEveryone,
+      );
+
+      // Messages will automatically update via the stream
+    } catch (e) {
+      errorMessage.value = 'Failed to delete message: $e';
+      Get.snackbar('Error', errorMessage.value);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Check if message is deleted for current user
+  bool isMessageDeletedForMe(MessageModel message) {
+    return _chatService.isMessageDeletedForMe(message, _chatService.myUid);
+  }
+
+  /// Permanently delete a message from database
+  Future<void> permanentlyDeleteMessage(String messageId) async {
+    if (otherUserId == null) return;
+
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      await _chatService.permanentlyDeleteMessage(
+        otherUserId: otherUserId!,
+        messageId: messageId,
+      );
+
+      // Messages will automatically update via the stream
+    } catch (e) {
+      errorMessage.value = 'Failed to permanently delete message: $e';
+      Get.snackbar('Error', errorMessage.value);
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
 
 
