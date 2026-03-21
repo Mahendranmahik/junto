@@ -12,7 +12,20 @@
           "package_name": "com.junto.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "878364587679-7ghejif39trgakgfvcns32lpgh2ghaff.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.junto.app",
+            "certificate_hash": "e8f3033f730e428b443282f4275645f757d882e2"
+          }
+        },
+        {
+          "client_id": "878364587679-aomcmgm1f08dsm1kamp1lllec2icmjvc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAXnKNEn0aDmsL2QXjgy36rsXSXYJHw-b8"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "878364587679-aomcmgm1f08dsm1kamp1lllec2icmjvc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "878364587679-39vqpch06sg6ek7kc2vvv6qgab47hq6d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.junto.app"
+              }
+            }
+          ]
         }
       }
     }

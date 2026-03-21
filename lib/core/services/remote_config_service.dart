@@ -51,7 +51,6 @@ class RemoteConfigService {
       }
       final result = await _remoteConfig!.fetchAndActivate();
 
-      _printFetchedValues();
       return result;
     } catch (e) {
       return false;
@@ -66,7 +65,6 @@ class RemoteConfigService {
       await _remoteConfig!.fetch();
       final activated = await _remoteConfig!.activate();
 
-      _printFetchedValues();
       return activated;
     } catch (e) {
       return false;
@@ -119,21 +117,6 @@ class RemoteConfigService {
   }
 
   bool get isInitialized => _remoteConfig != null;
-
-  void _printFetchedValues() {
-    if (_remoteConfig == null) {
-      return;
-    }
-
-    final allValues = getAll();
-    if (allValues.isEmpty) {
-      return;
-    }
-
-    allValues.forEach((key, value) {
-      print('$key = $value');
-    });
-  }
 
   Future<void> checkAndShowUpdatePopup(BuildContext context) async {
     try {
@@ -204,8 +187,6 @@ class RemoteConfigService {
                 : Uri.parse('https://apps.apple.com/app/id$packageName');
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       }
-    } catch (e) {
-      print("errorr qqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
-    }
+    } catch (e) {}
   }
 }

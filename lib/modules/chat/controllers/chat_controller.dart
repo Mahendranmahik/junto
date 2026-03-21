@@ -109,7 +109,6 @@ class ChatController extends GetxController {
       await _chatService.markMessagesAsRead(otherUserId!);
     } catch (e) {
       // Silent fail - not critical if marking as read fails
-      print('Failed to mark messages as read: $e');
     }
   }
 

@@ -35,6 +35,28 @@ class AuthService {
     return result.user;
   }
 
+  /// Creates `users/{uid}` when missing (e.g. first Google sign-in).
+  Future<void> ensureUserDocumentForOAuthUser(User user) async {
+    final ref = _db.collection("users").doc(user.uid);
+    final snap = await ref.get();
+    if (snap.exists) return;
+
+    final name = user.displayName?.trim().isNotEmpty == true
+        ? user.displayName!
+        : (user.email != null && user.email!.contains('@')
+            ? user.email!.split('@').first
+            : 'User');
+
+    await ref.set({
+      "uid": user.uid,
+      "email": user.email ?? "",
+      "name": name,
+      "photo": user.photoURL ?? "",
+      "isOnline": true,
+      "createdAt": FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> logout() async {
     await _auth.signOut();
   }

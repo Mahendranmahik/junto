@@ -13,7 +13,7 @@ class LoginView extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _obscurePassword = true.obs;
 
-  final authController = Get.put(AuthController());
+  late final AuthController authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -248,6 +248,47 @@ class LoginView extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey[700])),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'or',
+                        style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey[700])),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  height: 52,
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => authController.signInWithGoogle(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: Colors.grey[700]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: Icon(Icons.account_circle, color: Colors.grey[300]),
+                    label: const Text(
+                      'Continue with Google',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
