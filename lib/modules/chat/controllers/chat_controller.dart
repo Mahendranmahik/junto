@@ -1,10 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:junto/modules/chat/models/message_model.dart';
 import 'package:junto/modules/chat/services/chat_service.dart';
+import 'package:junto/modules/chat/services/wallpaper_service.dart';
+import 'package:junto/app/core/values/colors.dart';
 import 'package:junto/di/locator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ChatController extends GetxController {
   final ChatService _chatService = getIt<ChatService>();
+  final WallpaperService _wallpaperService = WallpaperService();
 
   // Observable list of messages
   var messages = <MessageModel>[].obs;
@@ -14,6 +20,9 @@ class ChatController extends GetxController {
 
   // Error message
   var errorMessage = ''.obs;
+
+  // Wallpaper path
+  var wallpaperPath = Rxn<String>();
 
   // Other user's ID (passed when opening chat)
   String? otherUserId;
@@ -26,6 +35,9 @@ class ChatController extends GetxController {
     if (arguments != null && arguments is Map) {
       otherUserId = arguments['uid'] as String?;
     }
+
+    // Load wallpaper
+    _loadWallpaper();
 
     // If we have other user ID, start listening to messages
     if (otherUserId != null) {
@@ -166,6 +178,173 @@ class ChatController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Load wallpaper from storage
+  Future<void> _loadWallpaper() async {
+    try {
+      final path = await _wallpaperService.getWallpaper();
+      if (path != null && path.isNotEmpty) {
+        final file = File(path);
+        if (await file.exists()) {
+          wallpaperPath.value = path;
+        } else {
+          wallpaperPath.value = null;
+        }
+      } else {
+        wallpaperPath.value = null;
+      }
+    } catch (e) {
+      wallpaperPath.value = null;
+    }
+  }
+
+  /// Pick image from gallery and set as wallpaper
+  Future<void> pickWallpaperFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        await _setWallpaper(image.path);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to pick image: $e');
+    }
+  }
+
+  /// Pick image from camera and set as wallpaper
+  Future<void> pickWallpaperFromCamera() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        await _setWallpaper(image.path);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to take photo: $e');
+    }
+  }
+
+  /// Set wallpaper from file path
+  Future<void> _setWallpaper(String imagePath) async {
+    try {
+      final success = await _wallpaperService.setWallpaper(imagePath);
+      if (success) {
+        wallpaperPath.value = imagePath;
+        Get.snackbar(
+          'Success',
+          'Wallpaper set successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        Get.snackbar('Error', 'Failed to save wallpaper');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to set wallpaper: $e');
+    }
+  }
+
+  /// Remove wallpaper
+  Future<void> removeWallpaper() async {
+    try {
+      final success = await _wallpaperService.removeWallpaper();
+      if (success) {
+        wallpaperPath.value = null;
+        Get.snackbar(
+          'Success',
+          'Wallpaper removed',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        Get.snackbar('Error', 'Failed to remove wallpaper');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to remove wallpaper: $e');
+    }
+  }
+
+  /// Show wallpaper options dialog
+  void showWallpaperOptions() {
+    Get.dialog(
+      Dialog(
+        backgroundColor: AppColors.cardBackgroundDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Chat Wallpaper',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: const Icon(Icons.image, color: Colors.white),
+                title: const Text(
+                  'Choose from Gallery',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Get.back();
+                  pickWallpaperFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Colors.white),
+                title: const Text(
+                  'Take Photo',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Get.back();
+                  pickWallpaperFromCamera();
+                },
+              ),
+              if (wallpaperPath.value != null) ...[
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                  title: const Text(
+                    'Remove Wallpaper',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    removeWallpaper();
+                  },
+                ),
+              ],
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppColors.textSecondaryDark),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

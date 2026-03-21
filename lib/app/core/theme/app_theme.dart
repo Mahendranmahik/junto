@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../values/colors.dart';
 
 class AppTheme {
+  static Color get primaryColor => AppColors.primary;
+  static Color get black7 => AppColors.textSecondary;
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

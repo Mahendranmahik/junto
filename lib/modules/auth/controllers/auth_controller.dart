@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:junto/modules/auth/services/auth_service.dart';
 import 'package:junto/modules/chat/services/push_notification_service.dart';
 import 'package:junto/di/locator.dart';
@@ -25,8 +26,7 @@ class AuthController extends GetxController {
       if (fcmToken != null && authService.currentUser != null) {
         await authService.saveFcmToken(fcmToken);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   Future<void> _sendWelcomeNotification() async {
@@ -36,8 +36,7 @@ class AuthController extends GetxController {
         await Future.delayed(const Duration(seconds: 1));
         await pushService.sendWelcomeNotification(userId);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   Future<void> register(String email, String pass, String name) async {
@@ -75,5 +74,23 @@ class AuthController extends GetxController {
   }
 }
 
+Future<UserCredential?> signInWithGoogle() async {
+  try {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
+    if (googleUser == null) return null; // user cancelled
 
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  } catch (e) {
+    print("Google Sign-In Error: $e");
+    return null;
+  }
+}

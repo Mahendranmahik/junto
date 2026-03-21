@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../routes/app_routes.dart';
+import '../services/remote_config_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -64,6 +65,13 @@ class _SplashScreenState extends State<SplashScreen>
       Get.offAllNamed(Routes.HOME);
     } else {
       Get.offAllNamed(Routes.LOGIN);
+    }
+    
+    // Check for update after navigation using Get.context
+    // This ensures the dialog shows on the new screen and doesn't get dismissed
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.context != null) {
+      await RemoteConfigService.instance.checkAndShowUpdatePopup(Get.context!);
     }
   }
 
@@ -148,3 +156,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
+
+
+

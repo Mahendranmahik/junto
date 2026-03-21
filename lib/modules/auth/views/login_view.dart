@@ -279,6 +279,16 @@ class LoginView extends StatelessWidget {
                     ),
                   ],
                 ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final userCredential = await signInWithGoogle();
+
+                    if (userCredential != null) {
+                      print("User: ${userCredential.user?.email}");
+                    }
+                  },
+                  child: Text("Sign in with Google"),
+                ),
               ],
             ),
           ),
