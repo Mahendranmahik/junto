@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "878364587679-dbraiesqo8nbnia2ha5hffr477mfhb5f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.junto.app",
+            "certificate_hash": "6978a0bfa5e4020fb1bf043a398154e018e64aa9"
+          }
+        },
+        {
           "client_id": "878364587679-aomcmgm1f08dsm1kamp1lllec2icmjvc.apps.googleusercontent.com",
           "client_type": 3
         }
