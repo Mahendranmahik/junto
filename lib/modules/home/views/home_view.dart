@@ -20,101 +20,90 @@ class HomeView extends GetView<HomeController> {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackgroundDark,
-      body: CustomScrollView(
-        slivers: [
-          // Custom App Bar with gradient
-          SliverAppBar(
-            expandedHeight: 180,
-            floating: false,
-            pinned: true,
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(22),
+              topRight: Radius.circular(22),
+            ),
+            border: Border(
+              top: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 16,
+                offset: const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: 0,
             elevation: 0,
-            backgroundColor: AppColors.cardBackgroundDark,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary,
-                      AppColors.primaryGradientEnd,
-                      AppColors.accent,
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top row with user info and actions
-                        Row(
-                          children: [
-                            StreamBuilder<DocumentSnapshot>(
-                              stream:
-                                  controller.homeService.getCurrentUserStream(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData && snapshot.data!.exists) {
-                                  final userData =
-                                      snapshot.data!.data()
-                                          as Map<String, dynamic>;
-                                  final userName = userData['name'] ?? 'User';
-                                  final photoUrl = userData['photo'] ?? '';
-                                  final initial =
-                                      userName.isNotEmpty
-                                          ? userName[0].toUpperCase()
-                                          : '?';
-
-                                  return Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child:
-                                        photoUrl.isNotEmpty
-                                            ? ClipOval(
-                                              child: _buildUserAvatar(
-                                                photoUrl,
-                                                context,
-                                                initial,
-                                              ),
-                                            )
-                                            : Center(
-                                              child: Text(
-                                                initial,
-                                                style: const TextStyle(
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                  );
-                                }
-                                return Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: StreamBuilder<DocumentSnapshot>(
+            backgroundColor: Colors.transparent,
+            selectedItemColor: AppColors.primaryLight,
+            unselectedItemColor: AppColors.textSecondaryDark.withOpacity(0.85),
+            type: BottomNavigationBarType.fixed,
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            onTap: (index) {
+              if (index == 1) {
+                Get.toNamed("/settings");
+              }
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_rounded),
+                label: 'Settings',
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // Custom App Bar with gradient
+            Obx(() {
+              final isSearchOpen = controller.isSearchOpen.value;
+              return SliverAppBar(
+                expandedHeight: isSearchOpen ? 180 : 90,
+                floating: false,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: AppColors.cardBackgroundDark,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary,
+                          AppColors.primaryGradientEnd,
+                          AppColors.accent,
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top row with user info and actions
+                          Row(
+                            children: [
+                              StreamBuilder<DocumentSnapshot>(
                                 stream:
                                     controller.homeService
                                         .getCurrentUserStream(),
@@ -125,428 +114,656 @@ class HomeView extends GetView<HomeController> {
                                         snapshot.data!.data()
                                             as Map<String, dynamic>;
                                     final userName = userData['name'] ?? 'User';
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Hello,',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.white.withOpacity(
-                                              0.8,
-                                            ),
-                                            fontWeight: FontWeight.w400,
-                                          ),
+                                    final photoUrl = userData['photo'] ?? '';
+                                    final initial =
+                                        userName.isNotEmpty
+                                            ? userName[0].toUpperCase()
+                                            : '?';
+
+                                    return Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 2,
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          userName,
-                                          style: const TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
+                                      ),
+                                      child:
+                                          photoUrl.isNotEmpty
+                                              ? ClipOval(
+                                                child: _buildUserAvatar(
+                                                  photoUrl,
+                                                  context,
+                                                  initial,
+                                                ),
+                                              )
+                                              : Center(
+                                                child: Text(
+                                                  initial,
+                                                  style: const TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
                                     );
                                   }
-                                  return const Text(
-                                    'Hello,',
-                                    style: TextStyle(
-                                      fontSize: 14,
+                                  return Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
                                       color: Colors.white,
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.search,
-                                color: Colors.white,
-                                size: 26,
-                              ),
-                              onPressed: () {
-                                // TODO: Implement search
-                              },
-                            ),
-                            PopupMenuButton<String>(
-                              icon: const Icon(
-                                Icons.more_vert,
-                                color: Colors.white,
-                              ),
-                              color: AppColors.cardBackgroundDark,
-                              onSelected: (value) async {
-                                if (value == 'settings') {
-                                  Get.toNamed("/settings");
-                                } else if (value == 'logout') {
-                                  final shouldLogout = await Get.dialog<bool>(
-                                    AlertDialog(
-                                      backgroundColor:
-                                          AppColors.cardBackgroundDark,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      title: const Text(
-                                        'Logout',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      content: const Text(
-                                        'Are you sure you want to logout?',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondaryDark,
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed:
-                                              () => Get.back(result: false),
-                                          child: Text(
-                                            'Cancel',
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: StreamBuilder<DocumentSnapshot>(
+                                  stream:
+                                      controller.homeService
+                                          .getCurrentUserStream(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData &&
+                                        snapshot.data!.exists) {
+                                      final userData =
+                                          snapshot.data!.data()
+                                              as Map<String, dynamic>;
+                                      final userName =
+                                          userData['name'] ?? 'User';
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Hello,',
                                             style: TextStyle(
-                                              color:
-                                                  AppColors.textSecondaryDark,
+                                              fontSize: 14,
+                                              color: Colors.white.withOpacity(
+                                                0.8,
+                                              ),
+                                              fontWeight: FontWeight.w400,
                                             ),
                                           ),
-                                        ),
-                                        TextButton(
-                                          onPressed:
-                                              () => Get.back(result: true),
-                                          child: const Text(
-                                            'Logout',
-                                            style: TextStyle(
-                                              color: AppColors.error,
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            userName,
+                                            style: const TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                    return const Text(
+                                      'Hello,',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Obx(() {
+                                final isOpen = controller.isSearchOpen.value;
+                                return IconButton(
+                                  icon: Icon(
+                                    isOpen ? Icons.close_rounded : Icons.search,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                  onPressed: () {
+                                    controller.toggleSearch();
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                  tooltip: isOpen ? 'Close search' : 'Search',
+                                );
+                              }),
+                              PopupMenuButton<String>(
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white,
+                                ),
+                                color: AppColors.cardBackgroundDark,
+                                onSelected: (value) async {
+                                  if (value == 'logout') {
+                                    final shouldLogout = await Get.dialog<bool>(
+                                      AlertDialog(
+                                        backgroundColor:
+                                            AppColors.cardBackgroundDark,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  );
+                                        title: const Text(
+                                          'Logout',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        content: const Text(
+                                          'Are you sure you want to logout?',
+                                          style: TextStyle(
+                                            color: AppColors.textSecondaryDark,
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Get.back(result: false),
+                                            child: Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                color:
+                                                    AppColors.textSecondaryDark,
+                                              ),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed:
+                                                () => Get.back(result: true),
+                                            child: const Text(
+                                              'Logout',
+                                              style: TextStyle(
+                                                color: AppColors.error,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
 
-                                  if (shouldLogout == true) {
-                                    await authController.logout();
+                                    if (shouldLogout == true) {
+                                      await authController.logout();
+                                    }
                                   }
-                                }
-                              },
-                              itemBuilder:
-                                  (context) => [
-                                    const PopupMenuItem(
-                                      value: 'settings',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.settings,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'Settings',
-                                            style: TextStyle(
-                                              color: Colors.white,
+                                },
+                                itemBuilder:
+                                    (context) => [
+                                      const PopupMenuItem(
+                                        value: 'logout',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.logout,
+                                              color: AppColors.error,
+                                              size: 20,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'logout',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.logout,
-                                            color: AppColors.error,
-                                            size: 20,
-                                          ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'Logout',
-                                            style: TextStyle(
-                                              color: Colors.white,
+                                            SizedBox(width: 12),
+                                            Text(
+                                              'Logout',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
+                                    ],
+                              ),
+                            ],
+                          ),
+                          Obx(() {
+                            final isOpen = controller.isSearchOpen.value;
+                            if (!isOpen) return const SizedBox.shrink();
+
+                            return Column(
+                              children: [
+                                const SizedBox(height: 24),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
                                     ),
-                                  ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Search bar
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: TextField(
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: 'Search chats...',
-                              hintStyle: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
-                                fontSize: 15,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: Colors.white.withOpacity(0.7),
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                                  ),
+                                  child: TextField(
+                                    controller: controller.searchTextController,
+                                    focusNode: controller.searchFocusNode,
+                                    autofocus: true,
+                                    style: const TextStyle(color: Colors.white),
+                                    onChanged: controller.setSearchQuery,
+                                    decoration: InputDecoration(
+                                      hintText: 'Search chats...',
+                                      hintStyle: TextStyle(
+                                        color: Colors.white.withOpacity(0.6),
+                                        fontSize: 15,
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.search,
+                                        color: Colors.white.withOpacity(0.7),
+                                      ),
+                                      suffixIcon: Obx(() {
+                                        final q = controller.searchQuery.value;
+                                        return q.trim().isEmpty
+                                            ? const SizedBox.shrink()
+                                            : IconButton(
+                                              onPressed: () {
+                                                controller.clearSearch();
+                                                FocusScope.of(
+                                                  context,
+                                                ).unfocus();
+                                              },
+                                              icon: Icon(
+                                                Icons.close_rounded,
+                                                color: Colors.white.withOpacity(
+                                                  0.7,
+                                                ),
+                                              ),
+                                              tooltip: 'Clear',
+                                            );
+                                      }),
+                                      border: InputBorder.none,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 14,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+              );
+            }),
+
+            // Chat List
+            SliverToBoxAdapter(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: controller.homeService.getUsers(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                      height: 400,
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Container(
+                      height: 400,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.cardBackgroundDark,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: AppColors.error,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading chats',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () {
+                              Get.forceAppUpdate();
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Container(
+                      height: 400,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withOpacity(0.2),
+                                  AppColors.primaryGradientEnd.withOpacity(0.2),
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              size: 64,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No chats yet',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Start a conversation with someone!',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textSecondaryDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final query =
+                      controller.debouncedQuery.value.trim().toLowerCase();
+                  final users = snapshot.data!.docs;
+                  final currentUserId = controller.homeService.myUid;
+
+                  final otherUsers =
+                      users.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return data["uid"] != currentUserId;
+                      }).toList();
+
+                  if (otherUsers.isEmpty) {
+                    return Container(
+                      height: 400,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withOpacity(0.2),
+                                  AppColors.primaryGradientEnd.withOpacity(0.2),
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.people_outline_rounded,
+                              size: 64,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No users found',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Wait for others to join!',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textSecondaryDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final filteredUsers =
+                      query.isEmpty
+                          ? otherUsers
+                          : otherUsers.where((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            final name = (data['name'] ?? '').toString();
+                            return name.toLowerCase().contains(query);
+                          }).toList();
+
+                  if (filteredUsers.isEmpty) {
+                    return Container(
+                      height: 400,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withOpacity(0.2),
+                                  AppColors.primaryGradientEnd.withOpacity(0.2),
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off_rounded,
+                              size: 64,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No results',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No chats match “${controller.searchQuery.value.trim()}”',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textSecondaryDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Obx(() {
+                          final selected = controller.selectedTabIndex.value;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.cardBackgroundDark.withOpacity(
+                                  0.35,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.10),
+                                  width: 1,
+                                ),
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final segmentW = constraints.maxWidth / 2;
+                                  return Stack(
+                                    children: [
+                                      AnimatedPositioned(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        curve: Curves.easeOutCubic,
+                                        left: selected == 0 ? 0 : segmentW,
+                                        top: 0,
+                                        bottom: 0,
+                                        width: segmentW,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  AppColors.primary,
+                                                  AppColors.primaryGradientEnd,
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.primary
+                                                      .withOpacity(0.28),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 6),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              onTap: () => controller.setTab(0),
+                                              child: Center(
+                                                child: AnimatedDefaultTextStyle(
+                                                  duration: const Duration(
+                                                    milliseconds: 160,
+                                                  ),
+                                                  curve: Curves.easeOut,
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        selected == 0
+                                                            ? FontWeight.w700
+                                                            : FontWeight.w600,
+                                                  ),
+                                                  child: const Text('All'),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              onTap: () => controller.setTab(1),
+                                              child: Center(
+                                                child: AnimatedDefaultTextStyle(
+                                                  duration: const Duration(
+                                                    milliseconds: 160,
+                                                  ),
+                                                  curve: Curves.easeOut,
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        selected == 1
+                                                            ? FontWeight.w700
+                                                            : FontWeight.w600,
+                                                  ),
+                                                  child: const Text('Unread'),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final data =
+                                filteredUsers[index].data()
+                                    as Map<String, dynamic>;
+                            final name = data["name"] ?? "Unknown";
+                            final otherUserId = data["uid"] ?? "";
+                            final photoUrl = data["photo"] ?? "";
+                            final initial =
+                                name.isNotEmpty ? name[0].toUpperCase() : "?";
+
+                            final card = Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildModernChatCard(
+                                context,
+                                name,
+                                otherUserId,
+                                photoUrl,
+                                initial,
+                                data,
+                              ),
+                            );
+
+                            return Obx(() {
+                              final unreadOnly =
+                                  controller.selectedTabIndex.value == 1;
+                              if (!unreadOnly) return card;
+
+                              return card;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-
-          // Chat List
-          SliverToBoxAdapter(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: controller.homeService.getUsers(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Container(
-                    height: 400,
-                    alignment: Alignment.center,
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Container(
-                    height: 400,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackgroundDark,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: AppColors.error,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading chats',
-                          style: TextStyle(
-                            color: AppColors.error,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () {
-                            Get.forceAppUpdate();
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Container(
-                    height: 400,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary.withOpacity(0.2),
-                                AppColors.primaryGradientEnd.withOpacity(0.2),
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 64,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No chats yet',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Start a conversation with someone!',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: AppColors.textSecondaryDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final users = snapshot.data!.docs;
-                final currentUserId = controller.homeService.myUid;
-
-                final otherUsers =
-                    users.where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      return data["uid"] != currentUserId;
-                    }).toList();
-
-                if (otherUsers.isEmpty) {
-                  return Container(
-                    height: 400,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary.withOpacity(0.2),
-                                AppColors.primaryGradientEnd.withOpacity(0.2),
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.people_outline_rounded,
-                            size: 64,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No users found',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Wait for others to join!',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: AppColors.textSecondaryDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    AppColors.primaryGradientEnd,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Recent Chats',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              '${otherUsers.length}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondaryDark,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: otherUsers.length,
-                        separatorBuilder:
-                            (context, index) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final data =
-                              otherUsers[index].data() as Map<String, dynamic>;
-                          final name = data["name"] ?? "Unknown";
-                          final otherUserId = data["uid"] ?? "";
-                          final photoUrl = data["photo"] ?? "";
-                          final initial =
-                              name.isNotEmpty ? name[0].toUpperCase() : "?";
-
-                          return _buildModernChatCard(
-                            context,
-                            name,
-                            otherUserId,
-                            photoUrl,
-                            initial,
-                            data,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -581,15 +798,15 @@ class HomeView extends GetView<HomeController> {
           },
           borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
                 // Avatar with gradient border
                 Stack(
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 54,
+                      height: 54,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
@@ -608,7 +825,7 @@ class HomeView extends GetView<HomeController> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(3),
+                      padding: const EdgeInsets.all(2.5),
                       child: Container(
                         decoration: BoxDecoration(
                           color: AppColors.cardBackgroundDark,
@@ -627,7 +844,7 @@ class HomeView extends GetView<HomeController> {
                                   child: Text(
                                     initial,
                                     style: const TextStyle(
-                                      fontSize: 28,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
@@ -640,21 +857,21 @@ class HomeView extends GetView<HomeController> {
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        width: 16,
-                        height: 16,
+                        width: 14,
+                        height: 14,
                         decoration: BoxDecoration(
                           color: AppColors.success,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: AppColors.cardBackgroundDark,
-                            width: 3,
+                            width: 2.5,
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 // Name and message preview
                 Expanded(
                   child: Column(
@@ -666,7 +883,7 @@ class HomeView extends GetView<HomeController> {
                             child: Text(
                               name,
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
@@ -682,8 +899,8 @@ class HomeView extends GetView<HomeController> {
                               if (timestamp != null) {
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                    horizontal: 7,
+                                    vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColors.surfaceDark,
@@ -692,7 +909,7 @@ class HomeView extends GetView<HomeController> {
                                   child: Text(
                                     _formatTimestamp(timestamp),
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       color: AppColors.textTertiaryDark,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -704,35 +921,50 @@ class HomeView extends GetView<HomeController> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       StreamBuilder<String?>(
                         stream: controller.homeService.getLastMessageStream(
                           otherUserId,
                         ),
                         builder: (context, messageSnapshot) {
                           final lastMessage = messageSnapshot.data;
+                          final hasMessage =
+                              lastMessage != null && lastMessage.isNotEmpty;
+                          final displayMessage =
+                              hasMessage ? lastMessage : 'No messages yet';
                           return Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  lastMessage != null && lastMessage.isNotEmpty
-                                      ? lastMessage
-                                      : 'No messages yet',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color:
-                                        lastMessage != null &&
-                                                lastMessage.isNotEmpty
-                                            ? AppColors.textSecondaryDark
-                                            : AppColors.textTertiaryDark,
-                                    fontWeight:
-                                        lastMessage != null &&
-                                                lastMessage.isNotEmpty
-                                            ? FontWeight.w400
-                                            : FontWeight.w300,
-                                  ),
+                                child: StreamBuilder<int>(
+                                  stream: controller.homeService
+                                      .getUnreadCountStream(otherUserId),
+                                  builder: (context, unreadSnapshot) {
+                                    final unreadCount =
+                                        unreadSnapshot.data ?? 0;
+                                    final emphasize = unreadCount > 0;
+                                    return Text(
+                                      displayMessage,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color:
+                                            emphasize && hasMessage
+                                                ? Colors.white
+                                                : (hasMessage
+                                                    ? AppColors
+                                                        .textSecondaryDark
+                                                    : AppColors
+                                                        .textTertiaryDark),
+                                        fontWeight:
+                                            emphasize && hasMessage
+                                                ? FontWeight.w600
+                                                : (hasMessage
+                                                    ? FontWeight.w400
+                                                    : FontWeight.w300),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                               StreamBuilder<int>(
@@ -744,8 +976,8 @@ class HomeView extends GetView<HomeController> {
                                     return Container(
                                       margin: const EdgeInsets.only(left: 8),
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 5,
+                                        horizontal: 7,
+                                        vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
                                         gradient: const LinearGradient(
@@ -765,8 +997,8 @@ class HomeView extends GetView<HomeController> {
                                         ],
                                       ),
                                       constraints: const BoxConstraints(
-                                        minWidth: 26,
-                                        minHeight: 22,
+                                        minWidth: 20,
+                                        minHeight: 16,
                                       ),
                                       child: Center(
                                         child: Text(
@@ -775,7 +1007,7 @@ class HomeView extends GetView<HomeController> {
                                               : '$unreadCount',
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontSize: 12,
+                                            fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -796,7 +1028,7 @@ class HomeView extends GetView<HomeController> {
                 Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textTertiaryDark,
-                  size: 24,
+                  size: 22,
                 ),
               ],
             ),

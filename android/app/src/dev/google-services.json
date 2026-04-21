@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "210110813527",
+    "project_id": "junto-dev-6a4a8",
+    "storage_bucket": "junto-dev-6a4a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:210110813527:android:b76435247479ff5d7eda12",
+        "android_client_info": {
+          "package_name": "com.junto.app.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "210110813527-i5bukqq6b22ot95avcs1b94qmjjglbek.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.junto.app.dev",
+            "certificate_hash": "e8f3033f730e428b443282f4275645f757d882e2"
+          }
+        },
+        {
+          "client_id": "210110813527-75etk3rs4clo0me9isjg5t21a1bi7ml0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPSXP5DYLGvvdvjjCL8FWDEawVJeRI_uY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "210110813527-75etk3rs4clo0me9isjg5t21a1bi7ml0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

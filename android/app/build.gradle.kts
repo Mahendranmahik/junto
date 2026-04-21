@@ -1,28 +1,20 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-   
 }
 
 dependencies {
-  // Import the Firebase BoM
-  implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
+  
+    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
 
 
-  // TODO: Add the dependencies for Firebase products you want to use
-  // When using the BoM, don't specify versions in Firebase dependencies
-  implementation("com.google.firebase:firebase-analytics")
-  implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore")
 
-  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-
-
-  // Add the dependencies for any other desired Firebase products
-  // https://firebase.google.com/docs/android/setup#available-libraries
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
 
 android {
@@ -37,7 +29,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "11"
     }
 
     defaultConfig {
@@ -48,7 +40,25 @@ android {
         versionName = flutter.versionName
     }
 
-   
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+
+        create("dev") {
+            dimension = "environment"
+            applicationId = "com.junto.app.dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Junto Dev")
+        }
+
+        create("prod") {
+            dimension = "environment"
+            applicationId = "com.junto.app"
+            resValue("string", "app_name", "Junto")
+        }
+    }
+
     signingConfigs {
         create("release") {
             storeFile = file("upload-keystore.jks")
@@ -59,10 +69,13 @@ android {
     }
 
     buildTypes {
-        release {
-          
-            signingConfig = signingConfigs.getByName("release")
 
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+
+        release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
         }
