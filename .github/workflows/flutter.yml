@@ -1,0 +1,20 @@
+name: First Test Action
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Say Hello
+        run: echo "Hello! GitHub Action is working"
+
+      - name: Show Date
+        run: date
+
+      - name: Finish
+        run: echo "Workflow completed successfully"
