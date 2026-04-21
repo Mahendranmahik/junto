@@ -1,4 +1,4 @@
-name: Flutter APK Build
+name: Flutter Debug APK Build
 
 on:
   push:
@@ -18,17 +18,14 @@ jobs:
         with:
           flutter-version: '3.41.7'
 
-      - name: Check Flutter Version
-        run: flutter --version
-
       - name: Install Packages
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build Debug APK
+        run: flutter build apk --debug
 
-      - name: Upload APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
