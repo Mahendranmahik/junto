@@ -1,4 +1,4 @@
-name: Flutter Trigger Test
+name: Flutter APK Build
 
 on:
   push:
@@ -6,12 +6,26 @@ on:
       - main
 
 jobs:
-  run-on-main-push:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Repo Checked
-        run: echo "A new commit was pushed to main"
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Show Commit Triggered
-        run: echo "Workflow triggered successfully"
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+
+      - name: Install Packages
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
