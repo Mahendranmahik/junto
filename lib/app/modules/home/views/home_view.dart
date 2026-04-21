@@ -9,14 +9,8 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.appName),
-      ),
-      body: const Center(
-        child: Text('Home Screen'),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.appName)),
+      body: const Center(child: Text('Home Screen test')),
     );
   }
 }
-
-
