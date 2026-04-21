@@ -1,4 +1,4 @@
-name: Flutter Debug APK Build
+name: Flutter Dev APK Build
 
 on:
   push:
@@ -21,14 +21,11 @@ jobs:
       - name: Install Packages
         run: flutter pub get
 
-      - name: Build Debug APK
-        run: flutter build apk --debug
-
-      - name: Show APK Files
-        run: find build -name "*.apk"
+      - name: Build Dev Debug APK
+        run: flutter build apk --debug --flavor dev
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-debug-apk
-          path: build/**/**/*.apk
+          name: junto-dev-debug-apk
+          path: build/app/outputs/flutter-apk/*.apk
