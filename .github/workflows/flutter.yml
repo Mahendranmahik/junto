@@ -1,4 +1,4 @@
-name: First Test Action
+name: Flutter Trigger Test
 
 on:
   push:
@@ -6,15 +6,12 @@ on:
       - main
 
 jobs:
-  test-job:
+  run-on-main-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Say Hello
-        run: echo "Hello! GitHub Action is working"
+      - name: Repo Checked
+        run: echo "A new commit was pushed to main"
 
-      - name: Show Date
-        run: date
-
-      - name: Finish
-        run: echo "Workflow completed successfully"
+      - name: Show Commit Triggered
+        run: echo "Workflow triggered successfully"
